@@ -49,7 +49,7 @@ gbd %<>% filter(SmllRgn %in% c("Sub-Saharan Africa (East)",
                                "Sub-Saharan Africa (Southern)"))
 # gbd %<>% select()
 
-gbd %<>% group_by(SmllRgn) %>% summarize()
+# gbd %<>% group_by(SmllRgn) %>% summarize()
 
 elev %<>% as.data.frame(xy = TRUE) %>%
   drop_na() %>% rename(Elevation = africa)
@@ -72,10 +72,12 @@ ggplot(coverage) +
   scale_color_gradientn(colors = met.brewer("Hokusai3")) + 
   # theme(legend.position = 'right',
   #       plot.margin = margin(1,1,0,0, "cm")) + 
-  xlim(range(africa$long)) + ylim(-35, 38) + 
+  #xlim(range(africa$long)) + 
+  ylim(-35, 38) + 
   geom_sf(data = gbd, fill = NA, color = NA, lwd = 1) + 
   theme(legend.position = 'right') -> g2
 
 library(patchwork)
 g1 + g2 + 
-  plot_layout(guides = 'collect') + plot_annotation(tag_levels = c("A","B"))
+  plot_layout(guides = 'collect') + plot_annotation(tag_levels = c("A","B")) & 
+  theme(plot.tag = element_text(size = 19))

@@ -22,6 +22,7 @@ mods <- lapply(splist, function(sp) {
   
   if(length(unique(latdf$Lat)) > 4) {
     latlm <- lm(Lat ~ Year, data = latdf)
+    
     predlat <- data.frame(species = sp,
                           latslope = coef(latlm)[[2]],
                           latsig = coefficients(summary(latlm))[2,4])
@@ -53,9 +54,11 @@ mods <- bind_rows(mods)
 # Some of the simpler analyses in the text
 
 mean(mods$latslope, na.rm = TRUE)*111
+sd(mods$latslope*111, na.rm = TRUE)
 table(mods$latsig < 0.05)
 
 mean(mods$elevslope, na.rm = TRUE)
+sd(mods$elevslope, na.rm = TRUE)
 table(mods$elevsig < 0.05)
 
 cor.test(mods$latslope, mods$elevslope, method = 'pearson')
@@ -205,4 +208,72 @@ ggplot(mappy2) +
   scale_color_manual(values = c('indianred2','grey30'))  + 
   guides(color = "none") + theme_bw() -> g2
 
-g1 + g2 + plot_annotation(tag_levels = c("A","B"))
+g1 + g2 + plot_annotation(tag_levels = c("A","B")) & 
+  theme(plot.tag = element_text(size = 16))
+
+######
+
+# Generate supplement tables for reviewer 2
+
+tables2 <- lapply(splist, function(sp) {  
+  
+  spdf <- anoph %>% filter(Species == sp)
+  latdf <- spdf %>% 
+    filter(Lat < 0) %>% # Only southern hemisphere
+    group_by(Year) %>% summarize(Lat = min(Lat)) %>% mutate(Lat = -1*Lat)
+  elevdf <- spdf %>% group_by(Year) %>% summarize(elev = max(elev))
+  spyrs <- range(spdf$Year)
+  
+  if(length(unique(latdf$Lat)) > 4) {
+    latlm <- lm(Lat ~ Year, data = latdf)
+    s1 <- summary(latlm)
+    df <- data.frame(species = sp,
+                     sigma = round(s1$sigma, 3),
+                     f = round(s1$fstatistic[1], 2),
+                     df = s1$fstatistic[3],
+                     adjr2 = round(s1$adj.r.squared,3))
+  } else {
+    df <- data.frame(species = sp,
+                     sigma = NA,
+                     f = NA,
+                     df = NA,
+                     adjr2 = NA)
+  }
+  
+  return(df)
+  
+})
+
+bind_rows(tables2) %>% View()
+
+tables3 <- lapply(splist, function(sp) {  
+  
+  spdf <- anoph %>% filter(Species == sp)
+  latdf <- spdf %>% 
+    filter(Lat < 0) %>% # Only southern hemisphere
+    group_by(Year) %>% summarize(Lat = min(Lat)) %>% mutate(Lat = -1*Lat)
+  elevdf <- spdf %>% group_by(Year) %>% summarize(elev = max(elev))
+  spyrs <- range(spdf$Year)
+  
+  if(length(unique(elevdf$elev)) > 4) {
+    elevlm <- lm(elev ~ Year, data = elevdf)
+    s1 <- summary(elevlm)
+    df <- data.frame(species = sp,
+                     sigma = round(s1$sigma, 3),
+                     f = round(s1$fstatistic[1], 2),
+                     df = s1$fstatistic[3],
+                     adjr2 = round(s1$adj.r.squared,3))
+  } else {
+    df <- data.frame(species = sp,
+                     sigma = NA,
+                     f = NA,
+                     df = NA,
+                     adjr2 = NA)
+  }
+  
+  return(df)
+  
+})
+
+bind_rows(tables3) %>% View()
+
