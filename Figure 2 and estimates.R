@@ -185,15 +185,9 @@ models %>%
   dplyr::select(Species, ElevSig) %>%
   distinct() -> elevsigs
 
-anoph %>%
-  filter(Year == 1900) %>% 
-  group_by(Species) %>%
-  slice(which.max(elev)) %>%
-  dplyr::select(Species, elev) %>%
-  left_join(df1900) %>% 
+df1900 %>% 
   left_join(df2000) %>% 
   left_join(elevsigs) -> mappy2
-
 
 tri <- data.frame(x = c(0,  3000, 3000),
                   y = c(0, 0,     3000))
